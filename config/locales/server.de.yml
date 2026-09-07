@@ -11,3 +11,7 @@ de:
     piratenlogin_error_redirects: "If the callback error_reason contains the first parameter, the user will be redirected to the URL in the second parameter"
     piratenlogin_verbose_logging: "Log detailed openid-connect authentication information to `/logs`. Keep this disabled during normal use."
     piratenlogin_authorize_parameters: "URL parameters which will be included in the redirect from /auth/oidc to the IDP's authorize endpoint"
+    piratenlogin_group_sync_enabled: "Die Keycloak-Gruppe des Mitglieds bei jeder Anmeldung auf die zugeordnete Discourse-Gruppe übertragen. Ohne diese Einstellung wird keine Gruppe hinzugefügt oder entfernt."
+    piratenlogin_groups_claim: "Claim im Token bzw. in der Userinfo, der die Gliederungsnamen enthält. Der Scope 'user_roles' liefert sie im Claim 'roles'. Fehlt der Claim, bleiben die Gruppen unverändert."
+    piratenlogin_group_parent_path: "Nur nötig, wenn der Claim vollständige Gruppenpfade liefert: übergeordnete Keycloak-Gruppe, unterhalb derer die Landesverbände liegen. Nur Pfade darunter werden ausgewertet. Leer lassen, um jeden Wert zu akzeptieren."
+    piratenlogin_group_mapping: "Eine Zuordnung pro Zeile, als 'Keycloak-Gruppe|Discourse-Gruppe'. Ohne '|' wird der Name unverändert übernommen. Die Discourse-Gruppe wird über 'name' und 'full_name' gefunden, da ein Gruppenname keine Leerzeichen enthalten darf. Diese Liste ist zugleich die Positivliste: nur die hier genannten Gruppen werden überhaupt verändert, automatische Gruppen nie."

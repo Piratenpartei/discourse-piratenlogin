@@ -76,4 +76,45 @@ describe PiratenloginAuthenticator do
       expect(user.groups).to include(group)
     end
   end
+
+  context "with group sync enabled" do
+    let!(:state_group) { Fabricate(:group, name: 'LV_Hessen', full_name: 'LV Hessen') }
+
+    before do
+      SiteSetting.piratenlogin_group_sync_enabled = true
+      SiteSetting.piratenlogin_groups_claim = 'roles'
+      SiteSetting.piratenlogin_group_parent_path = ''
+      SiteSetting.piratenlogin_group_mapping = 'Hessen|LV Hessen'
+      # The user_roles scope puts the Gliederungsnamen into the same claim the
+      # required-role check reads.
+      auth_token[:extra][:raw_info][:roles] = ["Piratenpartei Deutschland", "Hessen"]
+    end
+
+    it "assigns the Landesverband group on login" do
+      assoc = UserAssociatedAccount.find_or_initialize_by(provider_name: auth_token[:provider], provider_uid: auth_token[:uid])
+      assoc.user = user
+      assoc.save!
+      result = authenticator.after_authenticate(auth_token)
+      expect(result.user.reload.groups).to include(state_group)
+    end
+
+    it "passes the claim on to account creation" do
+      result = authenticator.after_authenticate(auth_token)
+      expect(result.extra_data[:groups]).to eq(["Piratenpartei Deutschland", "Hessen"])
+
+      authenticator.after_create_account(user, extra_data: result.extra_data)
+      expect(user.reload.groups).to include(state_group)
+    end
+
+    it "drops the Landesverband group when the required role is gone" do
+      assoc = UserAssociatedAccount.find_or_initialize_by(provider_name: auth_token[:provider], provider_uid: auth_token[:uid])
+      assoc.user = user
+      assoc.save!
+      state_group.add(user)
+      auth_token[:extra][:raw_info][:roles] = []
+
+      authenticator.after_authenticate(auth_token)
+      expect(user.reload.groups).not_to include(state_group)
+    end
+  end
 end

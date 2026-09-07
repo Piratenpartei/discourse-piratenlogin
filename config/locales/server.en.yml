@@ -11,3 +11,7 @@ en:
     piratenlogin_error_redirects: "If the callback error_reason contains the first parameter, the user will be redirected to the URL in the second parameter"
     piratenlogin_verbose_logging: "Log detailed openid-connect authentication information to `/logs`. Keep this disabled during normal use."
     piratenlogin_authorize_parameters: "URL parameters which will be included in the redirect from /auth/oidc to the IDP's authorize endpoint"
+    piratenlogin_group_sync_enabled: "Mirror the member's Keycloak group onto the mapped Discourse group on every login. With this off no group is ever added or removed."
+    piratenlogin_groups_claim: "Claim in the token or userinfo response that carries the Gliederungsnamen. The 'user_roles' scope delivers them in the 'roles' claim. A token without that claim leaves group membership untouched."
+    piratenlogin_group_parent_path: "Only needed when the claim carries full group paths: the Keycloak group the state groups live below. Only paths under it are evaluated. Leave empty to accept any value."
+    piratenlogin_group_mapping: "One mapping per line, as 'keycloak group|discourse group'. Without '|' the name is used as is. The Discourse group is matched on both 'name' and 'full_name', because a group name cannot contain a space. This list doubles as the allowlist: only the groups named here are ever changed, and never an automatic one."

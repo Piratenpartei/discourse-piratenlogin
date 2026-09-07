@@ -97,9 +97,14 @@ class PiratenloginAuthenticator < Auth::ManagedAuthenticator
     retrieve_avatar(association.user, association.info["image"])
     retrieve_profile(association.user, association.info)
 
+    # nil when the token carries no group claim, which means "unknown" and not
+    # "member of nothing" -- see PiratenloginGroupSync.
+    groups = PiratenloginGroupSync.claim_values(extra[:raw_info])
+
     if association.user
       if has_required_role
         add_auto_group(association.user)
+        PiratenloginGroupSync.sync!(association.user, groups)
       else
         remove_auto_group(association.user)
       end
@@ -109,7 +114,8 @@ class PiratenloginAuthenticator < Auth::ManagedAuthenticator
     result.username = info[:nickname]
     result.extra_data = {
       provider: auth_token[:provider],
-      uid: auth_token[:uid]
+      uid: auth_token[:uid],
+      groups: groups
     }
     result.user = association.user
 
@@ -125,6 +131,8 @@ class PiratenloginAuthenticator < Auth::ManagedAuthenticator
     association.user = user
 
     add_auto_group(user)
+    # Round-tripped through the session, so the key may have lost its symbol.
+    PiratenloginGroupSync.sync!(user, auth_token[:groups] || auth_token["groups"])
 
     association.save!
 
@@ -147,5 +155,7 @@ class PiratenloginAuthenticator < Auth::ManagedAuthenticator
       # Discourse doesn't remove the title itself
       user.title = nil
       user.save!
+      # A member who may not use the forum keeps no state group either.
+      PiratenloginGroupSync.revoke!(user)
   end
 end
