@@ -7,6 +7,7 @@
 # url: https://github.com/Piratenpartei/discourse-ekklesia
 
 require_relative "lib/omniauth_open_id_connect"
+require_relative "lib/piratenlogin_group_sync"
 require_relative "lib/piratenlogin_authenticator"
 
 auth_provider authenticator: PiratenloginAuthenticator.new()

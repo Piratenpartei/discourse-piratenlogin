@@ -21,3 +21,29 @@ plugins:
     default: ''
     type: list
     list_type: compact
+  piratenlogin_group_sync_enabled:
+    default: false
+  piratenlogin_groups_claim:
+    default: "roles"
+  piratenlogin_group_parent_path:
+    default: ""
+  piratenlogin_group_mapping:
+    default: |-
+      Baden-Württemberg|LV Baden-Württemberg
+      Bayern|LV Bayern
+      Berlin|LV Berlin
+      Brandenburg|LV Brandenburg
+      Bremen|LV Bremen
+      Hamburg|LV Hamburg
+      Hessen|LV Hessen
+      Mecklenburg-Vorpommern|LV Mecklenburg-Vorpommern
+      Niedersachsen|LV Niedersachsen
+      Nordrhein-Westfalen|LV Nordrhein-Westfalen
+      Rheinland-Pfalz|LV Rheinland-Pfalz
+      Saarland|LV Saarland
+      Sachsen|LV Sachsen
+      Sachsen-Anhalt|LV Sachsen-Anhalt
+      Schleswig-Holstein|LV Schleswig-Holstein
+      Thüringen|LV Thüringen
+    type: string
+    textarea: true
