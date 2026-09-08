@@ -38,15 +38,23 @@ state, so a new member lands in their Landesverband on first login.
 | `piratenlogin_group_sync_enabled` | `false` | Master switch. Off means no group is ever added or removed. |
 | `piratenlogin_groups_claim` | `roles` | Claim carrying the Gliederungsnamen. |
 | `piratenlogin_group_parent_path` | *(empty)* | Only for a realm that emits full group paths — see below. |
-| `piratenlogin_group_mapping` | `Bayern\|LV Bayern` × 16 | One `keycloak group\|discourse group` per line; without `\|` the name is used as is. |
+| `piratenlogin_group_mapping` | the 16 state names | One `keycloak group\|discourse group` per line; without `\|` the name is used as is. |
 
-A Discourse group `name` cannot contain a space, so `LV Bayern` is a group's
-`full_name`. Mapping targets are matched against **both** `name` and
-`full_name`, so either form works on the right-hand side.
+The forum's Landesverband groups are named after the state itself — `Bayern`,
+`Brandenburg`, `Hessen` — and the claim carries the Keycloak group's
+`display_name`, which is the same string. The default is therefore one bare
+name per line, mapping each onto itself.
 
-The left-hand side is whatever the claim actually carries. The default assumes
-the `display_name` (`Bayern`); if it turns out to be the group name, the rows
-become `BY|LV Bayern`.
+Mapping targets are matched against **both** a group's `name` and its
+`full_name`, so a forum that spells them out (`full_name: "Hessische Piraten"`,
+`name: "Hessen"`) still resolves. Where neither matches, give the target
+explicitly: `Hessen|LV_Hessen`.
+
+A state whose group does not exist in the forum is skipped silently — the
+mapping may list all sixteen even where only a few groups have been created.
+
+The left-hand side is whatever the claim actually carries. If a realm emits the
+group name instead of its display name, the rows become `HE|Hessen`.
 
 If the realm is ever switched to a group membership mapper with *Full group
 path* on, values arrive as `/Worldwide/BY` instead. Set

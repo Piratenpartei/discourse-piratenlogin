@@ -29,21 +29,21 @@ plugins:
     default: ""
   piratenlogin_group_mapping:
     default: |-
-      Baden-Württemberg|LV Baden-Württemberg
-      Bayern|LV Bayern
-      Berlin|LV Berlin
-      Brandenburg|LV Brandenburg
-      Bremen|LV Bremen
-      Hamburg|LV Hamburg
-      Hessen|LV Hessen
-      Mecklenburg-Vorpommern|LV Mecklenburg-Vorpommern
-      Niedersachsen|LV Niedersachsen
-      Nordrhein-Westfalen|LV Nordrhein-Westfalen
-      Rheinland-Pfalz|LV Rheinland-Pfalz
-      Saarland|LV Saarland
-      Sachsen|LV Sachsen
-      Sachsen-Anhalt|LV Sachsen-Anhalt
-      Schleswig-Holstein|LV Schleswig-Holstein
-      Thüringen|LV Thüringen
+      Baden-Württemberg
+      Bayern
+      Berlin
+      Brandenburg
+      Bremen
+      Hamburg
+      Hessen
+      Mecklenburg-Vorpommern
+      Niedersachsen
+      Nordrhein-Westfalen
+      Rheinland-Pfalz
+      Saarland
+      Sachsen
+      Sachsen-Anhalt
+      Schleswig-Holstein
+      Thüringen
     type: string
     textarea: true

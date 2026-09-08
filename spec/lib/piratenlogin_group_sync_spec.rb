@@ -5,16 +5,16 @@ require_relative '../../lib/piratenlogin_group_sync'
 
 describe PiratenloginGroupSync do
   let(:user) { Fabricate(:user) }
-  # A Discourse group name cannot contain a space, so the Gliederungsname the
-  # claim carries lives in full_name.
-  let!(:hessen) { Fabricate(:group, name: 'LV_Hessen', full_name: 'LV Hessen') }
-  let!(:bayern) { Fabricate(:group, name: 'LV_Bayern', full_name: 'LV Bayern') }
+  # The forum names its Landesverband groups after the state; full_name is
+  # decorative and does not have to line up with anything.
+  let!(:hessen) { Fabricate(:group, name: 'Hessen', full_name: 'Hessische Piraten') }
+  let!(:bayern) { Fabricate(:group, name: 'Bayern', full_name: 'Bayern Piraten') }
 
   before do
     SiteSetting.piratenlogin_group_sync_enabled = true
     SiteSetting.piratenlogin_groups_claim = 'roles'
     SiteSetting.piratenlogin_group_parent_path = ''
-    SiteSetting.piratenlogin_group_mapping = "Hessen|LV Hessen\nBayern|LV Bayern"
+    SiteSetting.piratenlogin_group_mapping = "Hessen\nBayern"
   end
 
   describe '.claim_values' do
@@ -59,20 +59,20 @@ describe PiratenloginGroupSync do
   end
 
   describe '.sync!' do
-    it 'maps the Gliederungsname onto the group full name' do
+    it 'adds the group the claim names, ignoring the parent Gliederung' do
       described_class.sync!(user, ['Piratenpartei Deutschland', 'Hessen'])
       expect(user.reload.groups).to include(hessen)
       expect(user.groups).not_to include(bayern)
     end
 
-    it 'matches a target against the group name as well' do
-      SiteSetting.piratenlogin_group_mapping = 'Hessen|LV_Hessen'
+    it 'resolves a target that only matches a full name' do
+      SiteSetting.piratenlogin_group_mapping = 'Hessen|Hessische Piraten'
       described_class.sync!(user, ['Hessen'])
       expect(user.reload.groups).to include(hessen)
     end
 
-    it 'accepts the group name as the source, for a realm that emits it' do
-      SiteSetting.piratenlogin_group_mapping = 'HE|LV Hessen'
+    it 'accepts the Keycloak group name as the source, for a realm that emits it' do
+      SiteSetting.piratenlogin_group_mapping = 'HE|Hessen'
       described_class.sync!(user, ['HE'])
       expect(user.reload.groups).to include(hessen)
     end
@@ -103,9 +103,15 @@ describe PiratenloginGroupSync do
     end
 
     it 'ignores a group that is not mapped' do
-      other = Fabricate(:group, name: 'LV_Berlin', full_name: 'LV Berlin')
+      other = Fabricate(:group, name: 'Berlin', full_name: 'Berliner Piraten')
       described_class.sync!(user, ['Berlin'])
       expect(user.reload.groups).not_to include(other)
+    end
+
+    it 'skips a mapped state whose group does not exist' do
+      SiteSetting.piratenlogin_group_mapping = "Hessen\nSaarland"
+      expect { described_class.sync!(user, ['Saarland']) }.not_to raise_error
+      expect(user.reload.groups).to be_empty
     end
 
     it 'never touches an automatic group even when it is mapped' do

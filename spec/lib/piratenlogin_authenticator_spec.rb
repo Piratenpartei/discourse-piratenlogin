@@ -78,13 +78,13 @@ describe PiratenloginAuthenticator do
   end
 
   context "with group sync enabled" do
-    let!(:state_group) { Fabricate(:group, name: 'LV_Hessen', full_name: 'LV Hessen') }
+    let!(:state_group) { Fabricate(:group, name: 'Hessen', full_name: 'Hessische Piraten') }
 
     before do
       SiteSetting.piratenlogin_group_sync_enabled = true
       SiteSetting.piratenlogin_groups_claim = 'roles'
       SiteSetting.piratenlogin_group_parent_path = ''
-      SiteSetting.piratenlogin_group_mapping = 'Hessen|LV Hessen'
+      SiteSetting.piratenlogin_group_mapping = 'Hessen'
       # The user_roles scope puts the Gliederungsnamen into the same claim the
       # required-role check reads.
       auth_token[:extra][:raw_info][:roles] = ["Piratenpartei Deutschland", "Hessen"]
