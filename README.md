@@ -19,12 +19,37 @@ on — each carrying a `display_name` attribute like `Bayern`.
 that membership from the nightly AF_BEO export and removes the siblings, so
 Keycloak is the single source of truth for which state a member belongs to.
 
-The `diskussion_piratenpartei_de` client already has the `user_roles` scope
-("Rollen des Users inkl. Gliederungsnamen"), which puts those names into the
-same `roles` claim the required-role check reads — `Piratenpartei Deutschland`
-is the parent group's. So **no Keycloak change is needed**: the claim carries
-`Bayern`, the forum group is called `LV Bayern`, and the default mapping is one
-row per Landesverband bridging the two.
+### Keycloak has to send the claim
+
+The token does **not** carry group membership out of the box. Verified against
+the live realm with `piratenlogin_verbose_logging`, the userinfo response — the
+hash this plugin reads — is exactly:
+
+```yaml
+sub: ...
+roles:
+  - offline_access
+  - uma_authorization
+  - Piratenpartei Deutschland
+  - default-roles-piratenlogin
+preferred_username: ...
+```
+
+Those are realm roles. `Piratenpartei Deutschland` is a role, not a
+Gliederungsname, and the `user_roles` scope ("Rollen des Users inkl.
+Gliederungsnamen") does not add group names despite its description. Add the
+mapper once on the client:
+
+1. **Clients → diskussion_piratenpartei_de → Client scopes →
+   diskussion_piratenpartei_de-dedicated → Add mapper → By configuration →
+   Group Membership**
+2. Token Claim Name `groups`, **Full group path `On`**
+3. *Add to ID token* **and** *Add to userinfo* — the plugin reads the userinfo
+   response, so a mapper that only fills the ID token changes nothing.
+
+A Group Membership mapper emits a group's `name`, never its `display_name`
+attribute. The claim therefore carries `HE`, not `Hessen`, which is why the
+default mapping bridges the two.
 
 On every login the plugin reads the claim, resolves each value through
 `piratenlogin_group_mapping`, and adds the user to the group that matches while
@@ -36,23 +61,24 @@ state, so a new member lands in their Landesverband on first login.
 | Setting | Default | Meaning |
 |---|---|---|
 | `piratenlogin_group_sync_enabled` | `false` | Master switch. Off means no group is ever added or removed. |
-| `piratenlogin_groups_claim` | `roles` | Claim carrying the Gliederungsnamen. |
-| `piratenlogin_group_parent_path` | *(empty)* | Only for a realm that emits full group paths — see below. |
-| `piratenlogin_group_mapping` | `Bayern\|LV Bayern` × 16 | One `keycloak group\|discourse group` per line; without `\|` the name is used as is. |
+| `piratenlogin_groups_claim` | `groups` | Claim the Group Membership mapper fills. |
+| `piratenlogin_group_parent_path` | `/Worldwide` | Only paths below this are evaluated. Ignored for bare names. |
+| `piratenlogin_group_mapping` | `HE\|Hessen` × 16 | One `keycloak group\|discourse group` per line; without `\|` the name is used as is. |
 
-A Discourse group `name` cannot contain a space, so `LV Bayern` is a group's
-`full_name`. Mapping targets are matched against **both** `name` and
-`full_name`, so either form works on the right-hand side.
+With *Full group path* on, values arrive as `/Worldwide/HE`; with it off, as
+`HE`. Both resolve to the same mapping row. Keep it on — that is what lets
+`piratenlogin_group_parent_path` tell a state group apart from an unrelated
+group that happens to be called `HE`. Every segment below the parent counts, so
+`/Worldwide/HE/KV Kassel` still resolves to `HE`.
 
-The left-hand side is whatever the claim actually carries. The default assumes
-the `display_name` (`Bayern`); if it turns out to be the group name, the rows
-become `BY|LV Bayern`.
+Mapping targets are matched against **both** a group's `name` and its
+`full_name`. A Discourse group name is ASCII-only and at most 20 characters, so
+three states cannot carry their own: the groups are `Baden-Wuerttemberg`,
+`Thueringen` and `Mecklenburg`, each with the exact state name in `full_name`.
+Either spelling works as a target.
 
-If the realm is ever switched to a group membership mapper with *Full group
-path* on, values arrive as `/Worldwide/BY` instead. Set
-`piratenlogin_groups_claim` to that claim and `piratenlogin_group_parent_path`
-to `/Worldwide`. Every segment below the parent counts, so
-`/Worldwide/BY/KV München` still resolves to `BY`.
+A state whose group does not exist in the forum is skipped silently — the
+mapping may list all sixteen even where only a few groups have been created.
 
 ### Two deliberate properties
 

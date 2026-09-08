@@ -78,16 +78,17 @@ describe PiratenloginAuthenticator do
   end
 
   context "with group sync enabled" do
-    let!(:state_group) { Fabricate(:group, name: 'LV_Hessen', full_name: 'LV Hessen') }
+    let!(:state_group) { Fabricate(:group, name: 'Hessen', full_name: 'Hessische Piraten') }
 
     before do
       SiteSetting.piratenlogin_group_sync_enabled = true
-      SiteSetting.piratenlogin_groups_claim = 'roles'
-      SiteSetting.piratenlogin_group_parent_path = ''
-      SiteSetting.piratenlogin_group_mapping = 'Hessen|LV Hessen'
-      # The user_roles scope puts the Gliederungsnamen into the same claim the
-      # required-role check reads.
-      auth_token[:extra][:raw_info][:roles] = ["Piratenpartei Deutschland", "Hessen"]
+      SiteSetting.piratenlogin_groups_claim = 'groups'
+      SiteSetting.piratenlogin_group_parent_path = '/Worldwide'
+      SiteSetting.piratenlogin_group_mapping = 'HE|Hessen'
+      # The group membership mapper fills its own claim; `roles` stays what it
+      # is, a list of realm roles.
+      auth_token[:extra][:raw_info][:roles] = ["Piratenpartei Deutschland"]
+      auth_token[:extra][:raw_info][:groups] = ["/Worldwide/HE"]
     end
 
     it "assigns the Landesverband group on login" do
@@ -100,7 +101,7 @@ describe PiratenloginAuthenticator do
 
     it "passes the claim on to account creation" do
       result = authenticator.after_authenticate(auth_token)
-      expect(result.extra_data[:groups]).to eq(["Piratenpartei Deutschland", "Hessen"])
+      expect(result.extra_data[:groups]).to eq(["/Worldwide/HE"])
 
       authenticator.after_create_account(user, extra_data: result.extra_data)
       expect(user.reload.groups).to include(state_group)
